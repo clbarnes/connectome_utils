@@ -30,7 +30,7 @@ class MultiplexConnectome():
         composed = self[args[0]].copy()
 
         if len(args) > 1:
-            composed.add_edges_from(self[name].edges_iter(data=True) for name in args)
+            composed.add_edges_from(self[name].edges(data=True) for name in args)
 
         return composed
 

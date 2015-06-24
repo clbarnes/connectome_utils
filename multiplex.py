@@ -1,5 +1,6 @@
 import networkx as nx
 import connectome_utils as util
+from itertools import chain
 
 
 class MultiplexConnectome():
@@ -30,7 +31,8 @@ class MultiplexConnectome():
         composed = self[args[0]].copy()
 
         if len(args) > 1:
-            composed.add_edges_from(self[name].edges(data=True) for name in args)
+            for name in args[1:]:
+                composed.add_edges_from(self[name].edges(data=True))
 
         return composed
 

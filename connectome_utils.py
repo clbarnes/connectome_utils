@@ -1,5 +1,43 @@
 import networkx as nx
 from graph_tool import generation
+import random
+from fractions import gcd
+from collections import Counter
+import json
+
+
+def json_serialise(G, filename=None):
+    d = dict()
+    d['nodes'] = dict(G.node)
+    d['edges'] = dict(G.edge)
+
+    if filename:
+        with open(filename, 'w') as f:
+            json.dump(d, f, indent=2, sort_keys=True)
+    else:
+        return json.dumps(d, indent=2, sort_keys=True)
+
+
+def json_deserialise(filename):
+    G = nx.MultiDiGraph()
+    try:
+        with open(filename) as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        try:
+            json.loads(filename)
+        except ValueError:
+            raise ValueError('Argument is neither a file path nor valid JSON')
+
+    for node, node_data in data['nodes'].items():
+        G.add_node(node, node_data)
+
+    for src, tgt_dict in data['edges'].items():
+        for tgt, key_dict in tgt_dict.items():
+            for key, edge_data in key_dict.items():
+                G.add_edge(src, tgt, int(key), edge_data)
+
+    return G
 
 
 def split_on_edge_attribute(G, attribute):
@@ -103,9 +141,36 @@ def randomise(graph, keep_labels=False):
         return randomise_undi(graph, keep_labels)
 
 
-def degree_generator_di(graph):
+def multiple_gcd(*args):
+    assert len(args) >= 2
+    first = args[0]
+    for second in args[1:]:
+        first = gcd(first, second)
+    return first
+
+
+def scale_degree_dict(d, total):
+    div = multiple_gcd(*list(d.values()))
+    choices = []
+    for node, reps in d.items():
+        choices.extend([node]*(reps/div))
+
+    sample = [random.choice(choices) for _ in total]
+    sample_counts = dict(Counter(sample))
+    sample_counts.update({node: 0 for node in d if node not in sample_counts})
+
+    return sample_counts
+
+
+def degree_generator_di(graph, n_edges=None):
     in_deg = graph.in_degree()
     out_deg = graph.out_degree()
+
+    if n_edges is not None:
+        in_deg = scale_degree_dict(in_deg, n_edges)
+        out_deg = scale_degree_dict(out_deg, n_edges)
+
+        assert sum(in_deg.values()) == sum(out_deg.values())
 
     for node in sorted(graph.nodes_iter()):
         yield in_deg[node], out_deg[node]

@@ -1,5 +1,5 @@
 import networkx as nx
-from graph_tool import generation
+# from graph_tool import generation
 import random
 from fractions import gcd
 from collections import Counter
@@ -35,7 +35,7 @@ def json_deserialise(filename):
     for src, tgt_dict in data['edges'].items():
         for tgt, key_dict in tgt_dict.items():
             for key, edge_data in key_dict.items():
-                G.add_edge(src, tgt, int(key), edge_data)
+                G.add_edge(src, tgt, key, edge_data)
 
     return G
 
@@ -134,13 +134,6 @@ def knockout(graph, receptor=None, transmitter=None):
     return G
 
 
-def randomise(graph, keep_labels=False):
-    if graph.is_directed():
-        return randomise_di(graph, keep_labels)
-    else:
-        return randomise_undi(graph, keep_labels)
-
-
 def multiple_gcd(*args):
     assert len(args) >= 2
     first = args[0]
@@ -176,45 +169,52 @@ def degree_generator_di(graph, n_edges=None):
         yield in_deg[node], out_deg[node]
 
 
-def randomise_di(graph, keep_labels):
-    gen = degree_generator_di(graph)
-    gt_graph = generation.random_graph(graph.number_of_nodes(), deg_sampler=lambda: next(gen), self_loops=True)
-    out_graph = nx.DiGraph()
-
-    if keep_labels:
-        nodes = sorted(graph.nodes_iter())
-        out_graph.add_nodes_from(nodes)
-
-        for edge in gt_graph.edges():
-            out_graph.add_edge(nodes[int(edge.source())], nodes[int(edge.target())])
-    else:
-        out_graph.add_nodes_from(int(vert) for vert in gt_graph.vertices())
-        for edge in gt_graph.edges():
-            out_graph.add_edge(int(edge.source()), int(edge.target()))
-
-    return out_graph
-
-
-def degree_generator_undi(graph):
-    deg = graph.degree()
-    for node in sorted(graph.nodes_iter()):
-        yield deg[node]
-
-
-def randomise_undi(graph, keep_labels):
-    gen = degree_generator_undi(graph)
-    gt_graph = generation.random_graph(graph.number_of_nodes(), deg_sampler=lambda: next(gen), directed=False, self_loops=True)
-    out_graph = nx.Graph()
-
-    if keep_labels:
-        nodes = sorted(graph.nodes_iter())
-        out_graph.add_nodes_from(nodes)
-
-        for edge in gt_graph.edges():
-            out_graph.add_edge(nodes[int(edge.source())], nodes[int(edge.target())])
-    else:
-        out_graph.add_nodes_from(int(vert) for vert in gt_graph.vertices())
-        for edge in gt_graph.edges():
-            out_graph.add_edge(int(edge.source()), int(edge.target()))
-
-    return out_graph
+# def randomise(graph, keep_labels=False):
+#     if graph.is_directed():
+#         return randomise_di(graph, keep_labels)
+#     else:
+#         return randomise_undi(graph, keep_labels)
+#
+#
+# def randomise_di(graph, keep_labels):
+#     gen = degree_generator_di(graph)
+#     gt_graph = generation.random_graph(graph.number_of_nodes(), deg_sampler=lambda: next(gen), self_loops=True)
+#     out_graph = nx.DiGraph()
+#
+#     if keep_labels:
+#         nodes = sorted(graph.nodes_iter())
+#         out_graph.add_nodes_from(nodes)
+#
+#         for edge in gt_graph.edges():
+#             out_graph.add_edge(nodes[int(edge.source())], nodes[int(edge.target())])
+#     else:
+#         out_graph.add_nodes_from(int(vert) for vert in gt_graph.vertices())
+#         for edge in gt_graph.edges():
+#             out_graph.add_edge(int(edge.source()), int(edge.target()))
+#
+#     return out_graph
+#
+#
+# def degree_generator_undi(graph):
+#     deg = graph.degree()
+#     for node in sorted(graph.nodes_iter()):
+#         yield deg[node]
+#
+#
+# def randomise_undi(graph, keep_labels):
+#     gen = degree_generator_undi(graph)
+#     gt_graph = generation.random_graph(graph.number_of_nodes(), deg_sampler=lambda: next(gen), directed=False, self_loops=True)
+#     out_graph = nx.Graph()
+#
+#     if keep_labels:
+#         nodes = sorted(graph.nodes_iter())
+#         out_graph.add_nodes_from(nodes)
+#
+#         for edge in gt_graph.edges():
+#             out_graph.add_edge(nodes[int(edge.source())], nodes[int(edge.target())])
+#     else:
+#         out_graph.add_nodes_from(int(vert) for vert in gt_graph.vertices())
+#         for edge in gt_graph.edges():
+#             out_graph.add_edge(int(edge.source()), int(edge.target()))
+#
+#     return out_graph

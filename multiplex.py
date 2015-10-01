@@ -5,7 +5,7 @@ from itertools import chain
 
 class MultiplexConnectome():
 
-    def __init__(self, data_source):
+    def __init__(self, data_source, edge_category_attribute='etype'):
         if isinstance(data_source, str):
             self.whole = nx.read_gpickle(data_source)
         elif isinstance(data_source, nx.Graph):
@@ -13,7 +13,7 @@ class MultiplexConnectome():
         else:
             raise ValueError('Unrecognised data source type: {}'.format(type(data_source)))
 
-        self.sub = util.split_on_edge_attribute(self.whole, 'type')
+        self.sub = util.split_on_edge_attribute(self.whole, edge_category_attribute)
 
     def __getitem__(self, item):
         return self.sub[item]

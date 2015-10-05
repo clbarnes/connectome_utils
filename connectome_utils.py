@@ -9,6 +9,7 @@ from scipy.stats import rv_discrete
 
 def json_serialise(G, filename=None):
     d = dict()
+    d['graph'] = dict(G.graph)
     d['nodes'] = dict(G.node)
     d['edges'] = dict(G.edge)
 
@@ -20,7 +21,6 @@ def json_serialise(G, filename=None):
 
 
 def json_deserialise(filename):
-    G = nx.MultiDiGraph()
     try:
         with open(filename) as f:
             data = json.load(f)
@@ -30,10 +30,13 @@ def json_deserialise(filename):
         except ValueError:
             raise ValueError('Argument is neither a file path nor valid JSON')
 
-    for node, node_data in data['nodes'].items():
+    G = nx.MultiDiGraph()
+    G.graph.update(data.get('graph', dict()))
+
+    for node, node_data in data.get('nodes', dict()).items():
         G.add_node(node, node_data)
 
-    for src, tgt_dict in data['edges'].items():
+    for src, tgt_dict in data.get('edges', dict()).items():
         for tgt, key_dict in tgt_dict.items():
             for key, edge_data in key_dict.items():
                 G.add_edge(src, tgt, key, edge_data)

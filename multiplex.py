@@ -1,6 +1,5 @@
 import networkx as nx
 import connectome_utils as util
-from itertools import chain
 
 
 class MultiplexConnectome():
@@ -93,3 +92,43 @@ def collapse_edge_data(dicts):
     collapsed['summed_weight'] = sum([weight for weight in collapsed['weight'] if weight is not None])
 
     return collapsed
+
+
+def expand_edges(G, weight='weight'):
+    G2 = nx.MultiDiGraph()
+
+    for node, data in G.nodes(data=True):
+        G2.add_node(node, attr_dict=data)
+
+    for src, tgt, key, data in G.edges_iter(keys=True, data=True):
+        copies = data.get(weight, 1)
+        data2 = data
+        data2[weight] = 1
+        for i in range(copies):
+            G2.add_edge(src, tgt, key='{}_{}'.format(key, i+1), attr_dict=data2)
+
+    return G2
+
+
+def collapse_edges(G, condition=None, weight='weight'):
+    G2 = nx.MultiDiGraph()
+
+    for node, data in G.nodes_iter(data=True):
+        G2.add_node(node, attr_dict=data)
+
+    edgeset = set(G.edges_iter())
+
+    if condition is None:
+        for src, tgt in edgeset:
+            weight_val = sum([data.get(weight, 1) for data in G.edge[src][tgt].values()])
+            G2.add_edge(src, tgt, key='{}->{}'.format(src, tgt), attr_dict={weight: weight_val})
+    else:
+        for src, tgt in edgeset:
+            cond_values = {data.get(condition) for data in G.edge[src][tgt].values()}
+            for cond_value in cond_values:
+                G2.add_edge(src, tgt, key='{}_{}->{}'.format(cond_value, src, tgt), attr_dict={weight: 0})
+            for data in G.edge[src][tgt].values():
+                cond_value = data.get(condition)
+                G.edge[src][tgt]['{}_{}->{}'.format(cond_value, src, tgt)][weight] += data.get(weight, 1)
+
+    return G2

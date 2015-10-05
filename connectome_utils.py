@@ -4,6 +4,7 @@ import random
 from fractions import gcd
 from collections import Counter
 import json
+from scipy.stats import rv_discrete
 
 
 def json_serialise(G, filename=None):
@@ -218,3 +219,26 @@ def degree_generator_di(graph, n_edges=None):
 #             out_graph.add_edge(int(edge.source()), int(edge.target()))
 #
 #     return out_graph
+
+def randomise_graph(G):
+    int_to_node = dict(enumerate(sorted(G.nodes())))
+    node_to_int = {val: key for key, val in int_to_node.items()}
+
+    in_deg = [(node_to_int[key], value/G.number_of_edges()) for key, value in G.in_degree().items()]
+    out_deg = [(node_to_int[key], value/G.number_of_edges()) for key, value in G.out_degree().items()]
+
+    in_dist = rv_discrete(values=tuple(zip(*in_deg)))
+    out_dist = rv_discrete(values=tuple(zip(*out_deg)))
+
+    srcs = in_dist.rvs(size=G.number_of_edges())
+    tgts = out_dist.rvs(size=G.number_of_edges())
+
+    out = nx.MultiDiGraph()
+
+    for srci, tgti in zip(list(srcs), list(tgts)):
+        src = int_to_node[srci]
+        tgt = int_to_node[tgti]
+
+        out.add_edge(src, tgt)
+
+    return out

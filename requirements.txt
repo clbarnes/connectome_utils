@@ -1,2 +1,2 @@
 networkx
-graph_tool
+scipy
